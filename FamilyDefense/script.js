@@ -219,14 +219,20 @@ function addMessage(sender, text, isMe, avatarKey, extraClass = "") {
 document.addEventListener("DOMContentLoaded", function () {
   console.log("正在拼命加载图片资源...");
 
+  // ✅ 【核心修复】：把音频分配提前！在显示 Loading 动画时，让音频和图片同时下载
+  sysMsgSound.src = ASSETS.AUDIO.message;
+  bgmSound.src = ASSETS.AUDIO.bgm;
+  clickSound.src = ASSETS.AUDIO.click;
+  confettiSound.src = ASSETS.AUDIO.confetti;
+
+  // 轻轻推浏览器一把，强制它立刻开始缓冲音频，防止手机浏览器偷懒
+  sysMsgSound.load();
+  bgmSound.load();
+  clickSound.load();
+  confettiSound.load();
+
   preloadAllImages(ASSETS).then(() => {
     console.log("资源加载完毕，显示首页！");
-
-    // 【关键新增】：图片全加载完了，进度条消失前，偷偷把音频路径塞进去，让它们在后台慢慢下
-    sysMsgSound.src = ASSETS.AUDIO.message;
-    bgmSound.src = ASSETS.AUDIO.bgm;
-    clickSound.src = ASSETS.AUDIO.click;
-    confettiSound.src = ASSETS.AUDIO.confetti;
 
     // 这样当首页的白色介绍卡片消失时，底层的微信界面就已经完全准备就绪了。
     loadStaticAssets();
@@ -604,7 +610,7 @@ function chooseOption(choice) {
         true,
         "me",
       );
-    }, 2000);
+    }, 1000);
 
     setTimeout(() => {
       addMessage(
@@ -1136,10 +1142,7 @@ function chooseLevel3Option(choice) {
       );
     }, 6500);
     setTimeout(() => {
-      showFailPopup(
-        3,
-        "纠结技术真假毫无意义！\n未能抓重点及时阻断屏幕共享，导致核心隐私全部泄露。",
-      );
+      showFailPopup(3, "未能抓重点及时阻断屏幕共享，导致核心隐私全部泄露。");
     }, 8500);
   } else if (choice === "B") {
     // 好结局
