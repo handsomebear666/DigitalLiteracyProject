@@ -1,0 +1,1039 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+body {
+  background-color: #333; /* 电脑端看到的背景色，深色能凸显中间的手机屏幕 */
+  display: flex;
+  justify-content: center; /* 在电脑端水平居中 */
+  align-items: center; /* 在电脑端垂直居中 */
+  height: 100vh;
+  margin: 0;
+  overflow: hidden;
+}
+
+/* =========================================
+   新增：模拟手机屏幕的容器样式
+   ========================================= */
+#app-container {
+  width: 100%;
+  max-width: 480px; /* 关键限制：最大宽度为普通手机尺寸 */
+  height: 100vh; /* 默认占满高度 */
+  max-height: 850px; /* 在大显示器上限制最高高度，避免屏幕被拉得过长 */
+  background-color: #ededed; /* 原本微信的背景色现在给容器 */
+  position: relative; /* 关键：让内部的绝对定位元素以它为基准 */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5); /* 加点阴影，看起来像个立体的手机 */
+}
+
+/* 1. 状态栏 */
+.status-bar {
+  height: 44px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 15px;
+  font-size: 14px;
+  font-weight: bold;
+  padding-top: calc(env(safe-area-inset-top) + 0px);
+}
+.status-right {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.icon-img {
+  height: 16px;
+  width: auto;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+
+/* 2. 微信头部 */
+.wechat-header {
+  height: 44px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 15px;
+  border-bottom: 1px solid #dcdcdc;
+  font-size: 17px;
+  font-weight: bold;
+}
+.back-btn,
+.more-btn {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.back-btn img,
+.more-btn img,
+.back-btn svg,
+.more-btn svg {
+  height: 20px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+.more-btn img,
+.more-btn svg {
+  height: 28px;
+}
+.back-btn svg path,
+.more-btn svg path {
+  fill: #333;
+}
+
+/* 3. 聊天记录区 */
+.chat-container {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.msg-row {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+}
+.avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  background-color: #ccc;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.msg-content {
+  max-width: 68%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 16px;
+  line-height: 1.5;
+  position: relative;
+  word-wrap: break-word;
+}
+
+.msg-left {
+  justify-content: flex-start;
+}
+.msg-left .avatar {
+  margin-right: 12px;
+  background-color: #e5cd9e;
+}
+.msg-left .msg-content {
+  background-color: #fff;
+}
+.msg-left .msg-content::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 14px;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-right: 10px solid #fff;
+}
+
+.msg-right {
+  justify-content: flex-end;
+}
+.msg-right .avatar {
+  margin-left: 12px;
+  background-color: #576b95;
+}
+.msg-right .msg-content {
+  background-color: #95ec69;
+}
+.msg-right .msg-content::before {
+  content: "";
+  position: absolute;
+  right: -10px;
+  top: 14px;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 10px solid #95ec69;
+}
+.msg-wrapper {
+  display: flex;
+  flex-direction: column;
+  max-width: 68%; /* 将最大宽度限制转移到包裹层 */
+}
+
+/* 覆盖：左侧气泡的宽度限制交给外层 wrapper */
+.msg-left .msg-content {
+  max-width: 100%;
+}
+
+/* 新增：群成员名字样式 */
+.msg-name {
+  font-size: 12px;
+  color: #888; /* 微信默认的浅灰色名字 */
+  margin-bottom: 2px;
+  margin-left: 4px; /* 稍微缩进一点，和气泡对齐 */
+}
+
+.sys-msg {
+  text-align: center;
+  font-size: 12px;
+  color: #fff;
+}
+.sys-msg span {
+  background-color: #dadada;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+/* 4. 选项悬浮区 */
+.game-action-area {
+  position: absolute;
+  /* 输入框的高度是 60px，这里设为 60px 就能完美衔接，严丝合缝 */
+  bottom: 60px;
+  left: 0;
+  width: 100%;
+  padding: 0; /* 删掉之前的 padding，让面板自己控制内边距 */
+  display: flex;
+  flex-direction: column;
+  z-index: 20;
+}
+.action-btn {
+  background-color: #07c160;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
+}
+.action-btn.secondary {
+  background-color: #fff;
+  color: #000;
+}
+
+/* =========================================
+   修改：底部工具栏 (提升层级，突破毛玻璃遮罩)
+   ========================================= */
+.wechat-bottom {
+  height: 60px;
+  background-color: #f7f7f7;
+  border-top: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  gap: 10px;
+  padding-bottom: env(safe-area-inset-bottom);
+
+  /* 【关键新增】：通过定位和层级，让它站在毛玻璃之上 */
+  position: relative;
+  z-index: 20;
+}
+.bottom-icon {
+  width: 28px;
+  height: 28px;
+}
+/* =========================================
+   修改：底部输入框及内嵌提示按钮
+   ========================================= */
+.input-wrapper {
+  flex: 1;
+  position: relative; /* 关键：让内部的按钮以它为基准定位 */
+  display: flex;
+  align-items: center;
+}
+
+.input-box {
+  width: 100%;
+  height: 40px;
+  border-radius: 4px;
+  border: none;
+  padding: 0 10px;
+  padding-right: 70px; /* 关键：右侧留出空白，防止将来输入文字时被按钮挡住 */
+  font-size: 16px;
+  outline: none;
+  background-color: #fff;
+}
+
+/* 嵌入在输入框内部的提示按钮 */
+.inline-hint-btn {
+  position: absolute;
+  right: 6px; /* 靠右对齐 */
+  background: #f2f2f2; /* 浅灰色背景，不抢视觉 */
+  color: #07c160;
+  font-size: 13px;
+  font-weight: bold;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.inline-hint-btn:active {
+  background: #e5e5e5;
+  transform: scale(0.95);
+}
+
+/* =========================================
+   皮肤 A：全屏沉浸式首页 (清爽白绿风)
+   ========================================= */
+.system-overlay.fullscreen-light {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f4f3 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 60px 20px 40px;
+  z-index: 99999;
+  box-sizing: border-box;
+}
+.start-header-light {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.wechat-logo-placeholder {
+  font-size: 48px;
+  margin-bottom: 10px;
+  color: #07c160;
+  animation: floatHint 2.5s infinite ease-in-out;
+}
+.game-title-light {
+  font-size: 28px;
+  color: #333333;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+  font-weight: 900;
+}
+.sub-title-light {
+  font-size: 18px;
+  color: #07c160;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+.intro-card-light {
+  width: 100%;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px 20px 30px;
+  box-shadow: 0 8px 24px rgba(7, 193, 96, 0.12);
+  border: 1px solid rgba(7, 193, 96, 0.1);
+  flex: 1;
+  margin-bottom: 40px;
+  display: flex;
+  flex-direction: column;
+}
+.intro-tabs-light {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eeeeee;
+}
+.tab-light {
+  font-size: 15px;
+  color: #888888;
+  padding-bottom: 10px;
+  position: relative;
+}
+.tab-light.active {
+  color: #07c160;
+  font-weight: bold;
+}
+.tab-light.active::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 3px;
+  background: #07c160;
+  border-radius: 3px 3px 0 0;
+}
+.warning-text-light {
+  font-size: 16px;
+  color: #444444;
+  white-space: pre-wrap;
+  flex: 1;
+  overflow-y: auto;
+
+  /* --- 核心修改部分 --- */
+  text-align: center; /* 1. 水平居中 */
+  line-height: 2.3; /* 2. 增大行间距 */
+  width: 100%; /* 3. 确保占满宽度 */
+  display: flex; /* 4. 开启 Flex 布局 */
+  flex-direction: column; /* 5. 垂直排列 */
+  justify-content: center; /* 6. 垂直居中（如果你想让文字在卡片中间，而不仅是顶部） */
+  padding: 0 10px; /* 7. 左右留白，防止文字贴边 */
+  /* ------------------- */
+}
+.warning-text-light::-webkit-scrollbar {
+  width: 4px;
+}
+.warning-text-light::-webkit-scrollbar-thumb {
+  background: #cccccc;
+  border-radius: 4px;
+}
+.start-btn-light {
+  background: #07c160;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 15px 0;
+  width: 70%;
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(7, 193, 96, 0.3);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  margin-bottom: 25px;
+}
+.start-btn-light:active {
+  transform: scale(0.96);
+  background: #06ad56;
+}
+.footer-text-light {
+  font-size: 12px;
+  color: #999999;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* =========================================
+   皮肤 B：关卡结算毛玻璃弹窗
+   ========================================= */
+.system-overlay.glass-popup {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+}
+.glass-box {
+  width: 82%;
+  max-width: 320px;
+  max-height: 75vh;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 20px;
+  padding: 30px 20px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+/* =========================================
+   特效：通关礼花
+   ========================================= */
+.confetti {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  z-index: 100000;
+  pointer-events: none;
+  animation: explode 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+@keyframes explode {
+  0% {
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty) + 200px))
+      scale(0) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* =========================================
+   修改：阅后即焚 Toast 提示弹窗 (底部显示)
+   ========================================= */
+.system-hint-toast {
+  position: absolute;
+  bottom: 70px; /* 从原本的 top: 60px 改为从底部计算 */
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  width: 92%;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  background: #07c160;
+  padding: 12px 16px;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 500;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+  text-align: center;
+  z-index: 999999;
+
+  /* 隐藏与显示动画 */
+  opacity: 0;
+  pointer-events: none;
+  /* 动画过渡改为 bottom */
+  transition:
+    opacity 0.3s ease,
+    bottom 0.3s ease;
+}
+
+/* 弹出时稍微向上浮动 */
+.system-hint-toast.show {
+  opacity: 1;
+  bottom: 85px;
+}
+.hint-icon {
+  font-size: 18px;
+  margin-right: 8px;
+  animation: pulseIcon 1.5s infinite;
+}
+@keyframes floatHint {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+@keyframes pulseIcon {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+/* =========================================
+   新增：聊天记录中的图片消息样式
+   ========================================= */
+.msg-image {
+  max-width: 200px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: block;
+}
+
+/* =========================================
+   新增：图片放大与取证界面
+   ========================================= */
+.inspector-overlay {
+  position: absolute; /* 确保只覆盖手机容器 */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000; /* 纯黑背景沉浸感更强 */
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.inspector-close {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  color: #fff;
+  font-size: 15px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  cursor: pointer;
+  z-index: 2;
+  backdrop-filter: blur(4px);
+}
+
+.inspector-img-box {
+  position: relative; /* 关键：让内部的热区基于图片定位 */
+  max-width: 100%;
+  max-height: 80vh;
+}
+
+.inspector-img-box img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* 破绽热区：默认透明，点击后变红框 */
+.flaw-hotspot {
+  position: absolute;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+
+/* 被揭露后的红框样式 */
+.flaw-hotspot.revealed {
+  border: 3px solid #ff4444;
+  background: rgba(255, 68, 68, 0.2);
+  animation: pulseBorder 1.5s infinite;
+}
+
+@keyframes pulseBorder {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 68, 68, 0);
+  }
+}
+/* =========================================
+   新增：全局毛玻璃遮罩层
+   ========================================= */
+.drawer-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.25); /* 让背景稍微变暗一点 */
+  backdrop-filter: blur(6px); /* 整个聊天背景模糊 */
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 15; /* 盖住聊天记录，但要在选项面板的 z-index: 20 之下 */
+  opacity: 0;
+  pointer-events: none; /* 隐藏时不阻挡点击 */
+  transition: opacity 0.3s ease;
+}
+
+.drawer-overlay.show {
+  opacity: 1;
+  pointer-events: auto; /* 显示时阻挡对背后聊天记录的点击 */
+}
+
+/* =========================================
+   修改：选项抽屉面板 (回归实体材质)
+   ========================================= */
+.options-panel {
+  background: #f7f7f7; /* 既然背景模糊了，面板用实色即可，对比更强烈 */
+  padding: 20px 20px 25px;
+  margin: 0;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: slideUpDrawer 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+.question-title {
+  font-size: 14px;
+  color: #333333;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 4px;
+  line-height: 1.5;
+}
+
+/* 覆盖原本的 .action-btn 确保长文字能换行居中 */
+.action-btn {
+  white-space: normal;
+  line-height: 1.4;
+  padding: 12px 15px;
+  font-size: 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+/* 选项 A：绿边白底，绿字 */
+.action-btn.outline {
+  background-color: #ffffff;
+  color: #07c160;
+  border: 1px solid #07c160;
+}
+
+/* 选项 B：绿底白字 */
+.action-btn.solid {
+  background-color: #07c160;
+  color: #ffffff;
+  border: 1px solid #07c160; /* 加上边框为了和上面的按钮高度严格对齐 */
+}
+
+/* 按下时的点击反馈 */
+.action-btn.outline:active {
+  background-color: #f0f0f0;
+}
+.action-btn.solid:active {
+  background-color: #06ad56;
+}
+/* =========================================
+   修改：移除图片消息的背景与尖角
+   ========================================= */
+
+/* 当 msg-content 同时拥有 no-tail 类时，隐藏尖角 */
+.msg-content.no-tail::before {
+  display: none !important;
+}
+
+/* 确保图片消息没有背景色和内边距（让图片干干净净地显示） */
+.msg-content.no-tail {
+  background-color: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important; /* 如果之前加了阴影也去掉 */
+}
+/* =========================================
+   新增：第二关 - 高仿淘宝网页样式
+   ========================================= */
+.taobao-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #f5f5f5;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  animation: slideUpFull 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+@keyframes slideUpFull {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.taobao-header {
+  height: 50px;
+  background: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 15px;
+  border-bottom: 1px solid #ddd;
+}
+
+.taobao-close {
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+}
+
+/* 破绽 1 热区 */
+.fake-url {
+  font-size: 13px;
+  color: #888;
+  background: #f0f0f0;
+  padding: 6px 15px;
+  border-radius: 15px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.taobao-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 30px;
+}
+
+.product-info {
+  background: #fff;
+  padding: 15px;
+}
+.price-tag {
+  color: #ff5000;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* 破绽 2 热区 */
+.countdown-box {
+  background: linear-gradient(90deg, #ff5000, #ff8c00);
+  color: white;
+  text-align: center;
+  padding: 12px;
+  margin: 10px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.fake-form {
+  background: #fff;
+  margin: 10px;
+  padding: 15px;
+  border-radius: 8px;
+}
+.form-input {
+  width: 100%;
+  height: 40px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  padding: 0 10px;
+  background: #f9f9f9;
+  font-size: 14px;
+}
+
+/* 破绽 3 热区 */
+.danger-input-wrapper {
+  position: relative;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.danger-input {
+  border-color: #ffcccc;
+  color: #ff4444;
+  pointer-events: none;
+}
+.danger-input::placeholder {
+  color: #ff9999;
+}
+
+.fake-submit-btn {
+  width: 100%;
+  background: #ff5000;
+  color: white;
+  border: none;
+  height: 45px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+/* 破绽被发现后的红框动画 */
+.taobao-flaw-revealed {
+  border: 2px solid #ff4444 !important;
+  background-color: rgba(255, 68, 68, 0.1) !important;
+  animation: pulseBorder 1.5s infinite;
+}
+/* =========================================
+   新增：第三关 - 伪造客服会议页面样式
+   ========================================= */
+.facetime-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #1c1c1e;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  animation: slideUpFull 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+.facetime-header {
+  height: 50px;
+  background: #2c2c2e;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 15px;
+  border-bottom: 1px solid #38383a;
+  font-size: 15px;
+  font-weight: bold;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.facetime-close {
+  color: #ff453a;
+  cursor: pointer;
+  background: rgba(255, 69, 58, 0.15);
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 13px;
+}
+
+.facetime-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.video-placeholder {
+  width: 100%;
+  height: 40%;
+  background: #000;
+  position: relative;
+  border-bottom: 2px solid #333;
+}
+.agent-badge {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  color: white;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.meeting-chat {
+  flex: 1;
+  background: #f2f2f7;
+  padding: 15px;
+  overflow-y: auto;
+}
+.chat-msg {
+  margin-bottom: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 12px;
+  border-radius: 8px;
+}
+.chat-msg.system {
+  text-align: center;
+  color: #8e8e93;
+  font-size: 12px;
+  padding: 0;
+}
+.chat-msg.agent {
+  background: #fff;
+  color: #333;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.screen-share-alert {
+  position: absolute;
+  bottom: 30px;
+  left: 5%;
+  width: 90%;
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: center;
+}
+
+.accept-btn {
+  background: #007aff;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 15px;
+  width: 80%;
+}
+
+/* 破绽变红动画复用，加个专属名字 */
+.ft-flaw-revealed {
+  border: 2px solid #ff453a !important;
+  background-color: rgba(255, 69, 58, 0.1) !important;
+  animation: pulseBorder 1.5s infinite;
+}
+/* =========================================
+   新增：全局加载屏幕与动画
+   ========================================= */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #f7f7f7; /* 使用柔和的浅灰背景 */
+  z-index: 9999999; /* 必须是宇宙最高层级，盖住一切 */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.5s ease;
+}
+
+.spinner {
+  width: 45px;
+  height: 45px;
+  border: 4px solid #e0e0e0; /* 底部的浅灰色圆环 */
+  border-top: 4px solid #07c160; /* 顶部的微信绿进度条 */
+  border-radius: 50%;
+  animation: spin 1s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite;
+  margin-bottom: 20px;
+}
+
+.loading-text {
+  font-size: 15px;
+  color: #888888;
+  font-weight: bold;
+  letter-spacing: 1px;
+  animation: pulseText 1.5s infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulseText {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
