@@ -1242,7 +1242,7 @@ function showLevel3EducationPopup() {
   }, 100);
 }
 // ==========================================
-// 【新增】：闯关失败弹窗与时光倒流引擎
+// 【新增】：闯关失败弹窗与时光倒流引擎 (超强防卡死兼容版)
 // ==========================================
 function showFailPopup(level, failMessage) {
   const overlay = document.getElementById("failOverlay");
@@ -1251,31 +1251,65 @@ function showFailPopup(level, failMessage) {
 
   textContainer.innerText = failMessage;
 
+  // 每次绑定前清理一下，防止多次点击出 Bug
+  btn.onclick = null;
   btn.onclick = () => {
     playClickSound();
     overlay.style.opacity = "0";
+
     setTimeout(() => {
       overlay.style.display = "none";
 
-      // 1. 时光倒流：删掉刚才因为选错而生成的所有消息
-      const badMsgs = document.querySelectorAll(`.bad-msg-${level}`);
-      badMsgs.forEach((msg) => msg.remove());
-
-      // 2. 重新呼出对应关卡的选项抽屉
-      i; // 2. 重新呼出对应关卡的选项抽屉
-      if (level === 1) {
-        // 【智能恢复人数】
-        if (isWeChat) {
-          document.title = "相亲相爱一家人 (27)";
-        } else {
-          document.getElementById("groupName").innerText =
-            "相亲相爱一家人 (27)";
+      try {
+        // 1. 兼容性极强的时光倒流：删掉刚才因为选错而生成的所有消息
+        const badMsgs = document.querySelectorAll(`.bad-msg-${level}`);
+        // 放弃 forEach，改用最传统的 for 循环，防止微信老版本内核报错卡死
+        for (let i = 0; i < badMsgs.length; i++) {
+          if (badMsgs[i]) {
+            // 兼容老手机的删除写法
+            if (badMsgs[i].remove) {
+              badMsgs[i].remove();
+            } else if (badMsgs[i].parentNode) {
+              badMsgs[i].parentNode.removeChild(badMsgs[i]);
+            }
+          }
         }
-        showDebunkOptions();
-      } else if (level === 2) {
-        showLevel2Options();
-      } else if (level === 3) {
-        showLevel3Options();
+
+        // 2. 重新呼出对应关卡的选项抽屉
+        if (level === 1) {
+          // 【智能恢复人数】
+          if (typeof isWeChat !== "undefined" && isWeChat) {
+            document.title = "相亲相爱一家人 (27)";
+
+            // 🪄 微信黑科技：利用加载透明 iframe 强制刷新顶部的标题栏
+            const iframe = document.createElement("iframe");
+            iframe.style.display = "none";
+            iframe.src =
+              "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+            iframe.onload = () => {
+              setTimeout(() => {
+                if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+              }, 10);
+            };
+            document.body.appendChild(iframe);
+          }
+
+          // 不管是不是微信，顺手把假群头也改了，买个双重保险
+          const groupNameDiv = document.getElementById("groupName");
+          if (groupNameDiv) groupNameDiv.innerText = "相亲相爱一家人 (27)";
+
+          showDebunkOptions();
+        } else if (level === 2) {
+          showLevel2Options();
+        } else if (level === 3) {
+          showLevel3Options();
+        }
+      } catch (error) {
+        console.error("时光倒流发生严重错误：", error);
+        // 🛡️ 终极兜底：就算上面报错了，也必须把选项弹出来，绝不能卡死！
+        if (level === 1) showDebunkOptions();
+        else if (level === 2) showLevel2Options();
+        else if (level === 3) showLevel3Options();
       }
     }, 300);
   };
