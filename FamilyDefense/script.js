@@ -75,9 +75,9 @@ function playConfettiSound() {
 // ==========================================
 function loadStaticAssets() {
   const mapping = {
-    signal: ASSETS.ICONS.signal,
-    wifi: ASSETS.ICONS.wifi,
-    battery: ASSETS.ICONS.battery,
+    // signal: ASSETS.ICONS.signal,
+    // wifi: ASSETS.ICONS.wifi,
+    // battery: ASSETS.ICONS.battery,
     back: ASSETS.ICONS.back,
     more: ASSETS.ICONS.more,
     voice_icon: ASSETS.ICONS.voice_icon,
@@ -114,13 +114,13 @@ setInterval(refreshDynamicTimes, 60000);
 // ==========================================
 // 1. 时间显示逻辑
 // ==========================================
-function updateTime() {
-  const now = new Date();
-  document.getElementById("clock").innerText =
-    `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-}
-setInterval(updateTime, 1000);
-updateTime();
+// function updateTime() {
+//   const now = new Date();
+//   document.getElementById("clock").innerText =
+//     `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+// }
+// setInterval(updateTime, 1000);
+// updateTime();
 function formatWeChatTime(timestamp) {
   const date = new Date(timestamp);
   const now = new Date();
@@ -224,6 +224,9 @@ document.addEventListener("DOMContentLoaded", function () {
     clickSound.src = ASSETS.AUDIO.click;
     confettiSound.src = ASSETS.AUDIO.confetti;
 
+    // 这样当首页的白色介绍卡片消失时，底层的微信界面就已经完全准备就绪了。
+    loadStaticAssets();
+
     // 资源加载完毕后，淡出并隐藏 Loading 层
     const loadingOverlay = document.getElementById("loadingOverlay");
     loadingOverlay.style.opacity = "0";
@@ -265,7 +268,7 @@ function startGame() {
     overlay.style.display = "none";
 
     // 3. 渲染静态内容
-    loadStaticAssets();
+    //loadStaticAssets();
 
     // 【修改这里】：直接获取当前真实时间，这样开场就会显示“刚刚”
     const realStartTime = new Date();
