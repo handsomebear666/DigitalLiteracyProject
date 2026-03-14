@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>相亲相爱一家人：防骗保卫战</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="app-container">
+      <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="loading-text">正在拼命加载资源...</div>
+      </div>
+      <div
+        class="system-overlay fullscreen-light"
+        id="missionOverlay"
+        style="display: none"
+      >
+        <div class="start-header-light">
+          <div class="wechat-logo-placeholder">🔍</div>
+          <h1 class="game-title-light">真相放大镜</h1>
+          <div class="sub-title-light">—— 相亲相爱一家人：防骗保卫战 ——</div>
+        </div>
+
+        <div class="intro-card-light">
+          <div class="intro-tabs-light">
+            <span class="tab-light active">剧情介绍</span>
+          </div>
+          <div class="warning-text-light" id="typedText"></div>
+        </div>
+        <button
+          class="start-btn-light"
+          id="startBtn"
+          onclick="startGame()"
+          style="opacity: 0; pointer-events: none"
+        >
+          我准备好了！
+        </button>
+      </div>
+
+      <div
+        class="system-overlay glass-popup"
+        id="settlementOverlay"
+        style="display: none"
+      >
+        <div class="glass-box">
+          <!-- <div class="wechat-logo-placeholder">🎉</div> -->
+          <h1 class="game-title-light">知识盘点</h1>
+
+          <div
+            class="warning-text-light"
+            id="settlementText"
+            style="margin-bottom: 25px"
+          ></div>
+
+          <button class="start-btn-light" onclick="finishLevelOne()">
+            我学会了
+          </button>
+        </div>
+      </div>
+
+      <div
+        class="system-overlay glass-popup"
+        id="failOverlay"
+        style="display: none; z-index: 100000"
+      >
+        <div class="glass-box">
+          <div
+            style="
+              font-size: 40px;
+              margin-bottom: 10px;
+              animation: pulseIcon 1.5s infinite;
+            "
+          >
+            ⚠️
+          </div>
+          <h1 class="game-title-light" style="color: #ff453a">闯关失败</h1>
+
+          <div
+            class="warning-text-light"
+            id="failText"
+            style="
+              margin-bottom: 25px;
+              text-align: center;
+              font-weight: bold;
+              color: #444;
+            "
+          ></div>
+
+          <button
+            class="start-btn-light"
+            id="failBtn"
+            style="
+              background: #ff453a;
+              box-shadow: 0 6px 16px rgba(255, 69, 58, 0.3);
+            "
+          >
+            重新选择
+          </button>
+        </div>
+      </div>
+
+      <div class="inspector-overlay" id="imageInspector" style="display: none">
+        <div class="inspector-close" onclick="closeInspector()">返回聊天</div>
+
+        <div class="inspector-img-box" id="inspectorBox">
+          <img src="" id="inspectorImg" />
+
+          <div
+            class="flaw-hotspot"
+            id="flaw-mountain"
+            style="top: 1%; left: 10%; width: 40%; height: 25%"
+            onclick="revealFlaw('mountain')"
+          ></div>
+
+          <div
+            class="flaw-hotspot"
+            id="flaw-billboard"
+            style="top: 35%; left: 1%; width: 40%; height: 40%"
+            onclick="revealFlaw('billboard')"
+          ></div>
+
+          <div
+            class="flaw-hotspot"
+            id="flaw-ai"
+            style="top: 90%; left: 87%; width: 13%; height: 10%"
+            onclick="revealFlaw('ai')"
+          ></div>
+        </div>
+      </div>
+
+      <div class="taobao-overlay" id="taobaoOverlay" style="display: none">
+        <div class="taobao-header">
+          <div class="taobao-close" onclick="closeTaobao()">✕ 关闭</div>
+          <div
+            class="fake-url"
+            onclick="revealTaobaoFlaw('url')"
+            id="taobao-flaw-url"
+          >
+            🔒 www.taoobaoo-vip-free.xyz
+          </div>
+          <div style="width: 40px"></div>
+        </div>
+
+        <div class="taobao-content">
+          <img id="yurongfu" src="" style="width: 100%; display: block" />
+
+          <div class="product-info">
+            <div class="price-tag">
+              ￥0.00
+              <span
+                style="
+                  text-decoration: line-through;
+                  color: #999;
+                  font-size: 14px;
+                "
+                >原价 ￥1299</span
+              >
+            </div>
+            <div style="font-size: 16px; font-weight: bold; margin-top: 5px">
+              【内部清仓】正品羽绒服免费送，仅限今日！
+            </div>
+          </div>
+
+          <div
+            class="countdown-box"
+            onclick="revealTaobaoFlaw('countdown')"
+            id="taobao-flaw-countdown"
+          >
+            🔥 距离活动结束仅剩：<span
+              style="color: #ffeb3b; font-weight: bold; font-size: 18px"
+              >02:14</span
+            ><br />
+            <span style="font-size: 12px; opacity: 0.9"
+              >已有 98,241 人成功领取</span
+            >
+          </div>
+
+          <div class="fake-form">
+            <div style="font-weight: bold; margin-bottom: 10px; color: #333">
+              邮寄信息 (仅需支付 19.9 元邮费)
+            </div>
+            <input
+              type="text"
+              class="form-input"
+              placeholder="收件人姓名"
+              disabled
+            />
+            <input
+              type="text"
+              class="form-input"
+              placeholder="详细地址"
+              disabled
+            />
+            <input
+              type="text"
+              class="form-input"
+              placeholder="手机号码"
+              disabled
+            />
+
+            <div
+              class="danger-input-wrapper"
+              onclick="revealTaobaoFlaw('password')"
+              id="taobao-flaw-password"
+            >
+              <input
+                type="password"
+                class="form-input danger-input"
+                placeholder="请输入银行卡取款密码以验证身份"
+                disabled
+              />
+            </div>
+
+            <button class="fake-submit-btn">立即支付邮费并领取</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="facetime-overlay" id="facetimeOverlay" style="display: none">
+        <div
+          class="facetime-header"
+          onclick="revealFaceTimeFlaw('channel')"
+          id="ft-flaw-channel"
+        >
+          <span style="color: #28c445">📞 腾腾会议 视频通话</span>
+          <div class="facetime-close" onclick="closeFaceTime()">结束</div>
+        </div>
+
+        <div class="facetime-content">
+          <div class="video-placeholder">
+            <img
+              id="kefu"
+              src=""
+              style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7"
+            />
+            <div class="agent-badge">工号: 9527 (微信支付安全中心)</div>
+          </div>
+
+          <div class="meeting-chat">
+            <div class="chat-msg system">系统提示：通话已加密</div>
+
+            <div
+              class="chat-msg agent"
+              onclick="revealFaceTimeFlaw('transfer')"
+              id="ft-flaw-transfer"
+            >
+              <span style="color: #007aff; font-weight: bold">客服代表：</span
+              ><br />
+              为验证本人操作并拦截扣款，请将名下所有资金暂时转入指定的【银联安全保护账户】进行验资，完成后原路退回。
+            </div>
+          </div>
+
+          <div
+            class="screen-share-alert"
+            onclick="revealFaceTimeFlaw('screenshare')"
+            id="ft-flaw-screenshare"
+          >
+            <div
+              style="
+                font-weight: bold;
+                font-size: 16px;
+                margin-bottom: 8px;
+                color: #333;
+              "
+            >
+              屏幕共享请求
+            </div>
+            <div style="font-size: 13px; color: #666; margin-bottom: 15px">
+              “微信支付客服”请求与您共享屏幕，以便指导您取消“百万保障”服务。
+            </div>
+            <button class="accept-btn">同意共享</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="status-bar">
+        <div id="clock">09:41</div>
+        <div class="status-right">
+          <img id="signal" class="icon-img" />
+          <img id="wifi" class="icon-img" />
+          <img id="battery" class="icon-img" />
+        </div>
+      </div>
+
+      <div class="wechat-header">
+        <div class="back-btn"><img id="back" class="icon-img" /></div>
+        <div id="groupName">相亲相爱一家人 (27)</div>
+        <div class="more-btn"><img id="more" class="icon-img" /></div>
+      </div>
+      <div id="systemToast" class="system-hint-toast">
+        <!-- <span class="hint-icon">💡</span> -->
+        <span id="toastText"></span>
+      </div>
+
+      <div class="drawer-overlay" id="drawerOverlay"></div>
+      <div class="chat-container" id="chatBox"></div>
+      <div class="game-action-area" id="actionArea"></div>
+
+      <div class="wechat-bottom">
+        <img id="voice_icon" class="bottom-icon" />
+        <div class="input-wrapper">
+          <input type="text" class="input-box" disabled placeholder=" " />
+          <!-- <div
+            id="inlineHintBtn"
+            class="inline-hint-btn"
+            onclick="triggerCurrentHint()"
+            style="display: none"
+          >
+            💡 提示
+          </div> -->
+        </div>
+        <img id="emoji_icon" class="bottom-icon" />
+        <img id="plus_icon" class="bottom-icon" />
+      </div>
+    </div>
+
+    <script src="story.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
