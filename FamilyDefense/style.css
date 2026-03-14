@@ -17,6 +17,8 @@ body {
   height: 100vh;
   margin: 0;
   overflow: hidden;
+  font-size: 14px;
+  color: #333; /* 顺便统一下全局字体颜色 */
 }
 
 /* =========================================
@@ -66,7 +68,7 @@ body {
   align-items: center;
   padding: 0 15px;
   border-bottom: 1px solid #dcdcdc;
-  font-size: 17px;
+  font-size: 15px;
   font-weight: bold;
 }
 .back-btn,
@@ -129,7 +131,7 @@ body {
   max-width: 68%;
   padding: 10px 14px;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1.5;
   position: relative;
   word-wrap: break-word;
@@ -382,7 +384,7 @@ body {
   border-radius: 3px 3px 0 0;
 }
 .warning-text-light {
-  font-size: 16px;
+  font-size: 14px;
   color: #444444;
   white-space: pre-wrap;
 
@@ -1048,12 +1050,18 @@ body {
   }
 }
 /* =========================================
-   【新增】：单独给知识盘点弹窗加上滑动功能
+   【修改】：单独给知识盘点弹窗加上滑动功能
    ========================================= */
 #settlementText,
 #failText {
-  flex: 1;
+  /* 【核心修复】：必须改成 block！取消强制居中，顶部就不会被切掉了 */
+  display: block;
   overflow-y: auto;
-  max-height: 50vh; /* 限制最大高度，文字超出了就会在这个框里上下滚动 */
+  max-height: 55vh; /* 稍微增加一点高度 */
   width: 100%;
+
+  /* 【体验优化】：知识点是列表，左对齐加上合理的行间距，阅读体验更好 */
+  text-align: left;
+  line-height: 1.8;
+  padding: 0 5px;
 }

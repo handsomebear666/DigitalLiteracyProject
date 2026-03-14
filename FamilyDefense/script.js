@@ -1,31 +1,6 @@
 // 【全局探针】：检测当前是否在微信环境下打开
 const isWeChat = /MicroMessenger/i.test(navigator.userAgent);
-// ==========================================
-// 【关键新增】：微信环境专属防字体放大补丁
-// ==========================================
-if (isWeChat) {
-  if (
-    typeof WeixinJSBridge == "object" &&
-    typeof WeixinJSBridge.invoke == "function"
-  ) {
-    handleFontSize();
-  } else {
-    if (document.addEventListener) {
-      document.addEventListener("WeixinJSBridgeReady", handleFontSize, false);
-    } else if (document.attachEvent) {
-      document.attachEvent("WeixinJSBridgeReady", handleFontSize);
-      document.attachEvent("onWeixinJSBridgeReady", handleFontSize);
-    }
-  }
-  function handleFontSize() {
-    // 强制把微信网页字体设为标准大小 (0代表不缩放)
-    WeixinJSBridge.invoke("setFontSizeCallback", { fontSize: 0 });
-    // 拦截用户在微信菜单里手动修改字体大小的操作
-    WeixinJSBridge.on("menu:setfont", function () {
-      WeixinJSBridge.invoke("setFontSizeCallback", { fontSize: 0 });
-    });
-  }
-}
+
 // ==========================================
 // ==========================================
 // 0. 资源预加载逻辑 (必须放在最外层全局作用域)
