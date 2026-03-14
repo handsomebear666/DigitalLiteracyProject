@@ -1,3 +1,5 @@
+// 【全局探针】：检测当前是否在微信环境下打开
+const isWeChat = /MicroMessenger/i.test(navigator.userAgent);
 // ==========================================
 // 0. 资源预加载逻辑 (必须放在最外层全局作用域)
 // ==========================================
@@ -41,12 +43,14 @@ function preloadAllImages(assets) {
 }
 
 // ==========================================
-// 【新增】：音频预加载与播放控制器 (缺失的这部分)
+// 【修改】：音频预加载与播放控制器 (先建空壳，不抢网速)
 // ==========================================
-const sysMsgSound = new Audio(ASSETS.AUDIO.message);
-const bgmSound = new Audio(ASSETS.AUDIO.bgm);
-const clickSound = new Audio(ASSETS.AUDIO.click);
-const confettiSound = new Audio(ASSETS.AUDIO.confetti);
+// ❌ 删掉原来的 new Audio(ASSETS.AUDIO.xxx)
+// ✅ 替换为纯粹的空壳对象：
+const sysMsgSound = new Audio();
+const bgmSound = new Audio();
+const clickSound = new Audio();
+const confettiSound = new Audio();
 
 bgmSound.loop = true;
 bgmSound.volume = 0.3;
@@ -56,6 +60,7 @@ function playMessageSound() {
   sysMsgSound.currentTime = 0;
   sysMsgSound.play().catch((e) => console.log("等待用户交互才能播放音效"));
 }
+// ... 下面的 playClickSound 保持不变
 
 function playClickSound() {
   clickSound.currentTime = 0;
@@ -72,9 +77,9 @@ function playConfettiSound() {
 // ==========================================
 function loadStaticAssets() {
   const mapping = {
-    signal: ASSETS.ICONS.signal,
-    wifi: ASSETS.ICONS.wifi,
-    battery: ASSETS.ICONS.battery,
+    // signal: ASSETS.ICONS.signal,
+    // wifi: ASSETS.ICONS.wifi,
+    // battery: ASSETS.ICONS.battery,
     back: ASSETS.ICONS.back,
     more: ASSETS.ICONS.more,
     voice_icon: ASSETS.ICONS.voice_icon,
@@ -111,13 +116,13 @@ setInterval(refreshDynamicTimes, 60000);
 // ==========================================
 // 1. 时间显示逻辑
 // ==========================================
-function updateTime() {
-  const now = new Date();
-  document.getElementById("clock").innerText =
-    `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-}
-setInterval(updateTime, 1000);
-updateTime();
+// function updateTime() {
+//   const now = new Date();
+//   document.getElementById("clock").innerText =
+//     `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+// }
+// setInterval(updateTime, 1000);
+// updateTime();
 function formatWeChatTime(timestamp) {
   const date = new Date(timestamp);
   const now = new Date();
@@ -203,24 +208,37 @@ function addMessage(sender, text, isMe, avatarKey, extraClass = "") {
 // 3. 剧情流程控制与全局弹窗管理 (无打字机极速版)
 // ==========================================
 
-// 网页一加载就开始预加载，完成后直接显示首页弹窗
-window.onload = function () {
+// ==========================================
+// 3. 剧情流程控制与全局弹窗管理 (无打字机极速版)
+// ==========================================
+
+// 【关键修改】：把 window.onload 换成 DOMContentLoaded
+// 只要 HTML 骨架加载完，立刻开始加载图片，不盲等音频！
+document.addEventListener("DOMContentLoaded", function () {
   console.log("正在拼命加载图片资源...");
 
   preloadAllImages(ASSETS).then(() => {
     console.log("资源加载完毕，显示首页！");
 
-    // 【新增】：资源加载完毕后，淡出并隐藏 Loading 层
+    // 【关键新增】：图片全加载完了，进度条消失前，偷偷把音频路径塞进去，让它们在后台慢慢下
+    sysMsgSound.src = ASSETS.AUDIO.message;
+    bgmSound.src = ASSETS.AUDIO.bgm;
+    clickSound.src = ASSETS.AUDIO.click;
+    confettiSound.src = ASSETS.AUDIO.confetti;
+
+    // 这样当首页的白色介绍卡片消失时，底层的微信界面就已经完全准备就绪了。
+    loadStaticAssets();
+
+    // 资源加载完毕后，淡出并隐藏 Loading 层
     const loadingOverlay = document.getElementById("loadingOverlay");
     loadingOverlay.style.opacity = "0";
     setTimeout(() => {
       loadingOverlay.style.display = "none";
-    }, 500); // 等待 0.5 秒淡出动画播完再彻底隐藏
+    }, 500);
 
     // 显示首页白绿风弹窗
     const overlay = document.getElementById("missionOverlay");
     overlay.style.display = "flex";
-    // 稍微延迟一点点显示主界面，让淡出动画过渡更平滑
     setTimeout(() => {
       overlay.style.opacity = "1";
     }, 100);
@@ -233,11 +251,11 @@ window.onload = function () {
     btn.style.opacity = "1";
     btn.style.pointerEvents = "auto";
   });
-};
+});
 
 // 玩家点击“我准备好了” -> 进入微信并自动发消息
 function startGame() {
-  playClickSound(); // 【新增】：播放点击音效
+  playClickSound();
   const overlay = document.getElementById("missionOverlay");
 
   // 1. 瞬间解锁并播放所有音频
@@ -246,15 +264,21 @@ function startGame() {
   sysMsgSound.pause();
   sysMsgSound.currentTime = 0;
 
-  // 2. 隐藏弹窗
+  // ✅ 【关键修复】：把显示头部的逻辑挪到这里！
+  // 这样在白卡片开始变透明的一瞬间，假群头就已经在后面准备好了
+  if (isWeChat) {
+    document.title = "相亲相爱一家人 (27)";
+  } else {
+    document.getElementById("fakeWechatHeader").style.display = "flex";
+  }
+
+  // 2. 隐藏弹窗 (执行 0.5 秒的淡出动画)
   overlay.style.opacity = "0";
   setTimeout(() => {
     overlay.style.display = "none";
 
-    // 3. 渲染静态内容
-    loadStaticAssets();
+    // 3. 渲染静态内容及时间
 
-    // 【修改这里】：直接获取当前真实时间，这样开场就会显示“刚刚”
     const realStartTime = new Date();
     addTimeDivider(realStartTime);
 
@@ -549,8 +573,12 @@ function chooseOption(choice) {
       addMessage("大堂哥", "😡", false, "one_cousin", "bad-msg-1");
     }, 5000);
     setTimeout(() => {
-      const groupNameDiv = document.getElementById("groupName");
-      if (groupNameDiv) groupNameDiv.innerText = "相亲相爱一家人 (26)";
+      if (isWeChat) {
+        document.title = "相亲相爱一家人 (26)";
+      } else {
+        const groupNameDiv = document.getElementById("groupName");
+        if (groupNameDiv) groupNameDiv.innerText = "相亲相爱一家人 (26)";
+      }
       addSystemMessage("你已被管理员移出该群", "bad-msg-1");
     }, 7000);
 
@@ -907,7 +935,7 @@ function hideUncleMessage(type) {
         return;
       }
     } else if (type === "text") {
-      if (row.innerText.includes("震惊！咱们本地捞出变异巨兽")) {
+      if (row.innerText.includes("震惊！漓江出现了变异巨兽")) {
         row.style.display = "none";
         return;
       }
@@ -915,7 +943,7 @@ function hideUncleMessage(type) {
       // 撤回三姑的钓鱼链接
       if (
         row.innerText.includes("三姑") &&
-        row.innerHTML.includes("taobao-vip-free")
+        row.innerHTML.includes("taoobaoo-vip-free")
       ) {
         row.style.display = "none";
         return;
@@ -1005,6 +1033,11 @@ function closeFaceTime() {
   document.getElementById("facetimeOverlay").style.display = "none";
 }
 
+function finishFaceTime() {
+  playClickSound();
+  document.getElementById("facetimeOverlay").style.display = "none";
+}
+
 function revealFaceTimeFlaw(flawId) {
   if (!canFindFTFlaws) return;
 
@@ -1040,7 +1073,7 @@ function revealFaceTimeFlaw(flawId) {
       if (hintBtn) hintBtn.style.display = "none";
 
       setTimeout(() => {
-        closeFaceTime();
+        finishFaceTime();
         updateSystemHint("⚠️ 请立刻制止老妈的操作！", false, 1000);
         setTimeout(showLevel3Options, 1500);
       }, 2500);
@@ -1229,9 +1262,15 @@ function showFailPopup(level, failMessage) {
       badMsgs.forEach((msg) => msg.remove());
 
       // 2. 重新呼出对应关卡的选项抽屉
+      i; // 2. 重新呼出对应关卡的选项抽屉
       if (level === 1) {
-        // 第一关特例：恢复被踢出群聊的人数
-        document.getElementById("groupName").innerText = "相亲相爱一家人 (27)";
+        // 【智能恢复人数】
+        if (isWeChat) {
+          document.title = "相亲相爱一家人 (27)";
+        } else {
+          document.getElementById("groupName").innerText =
+            "相亲相爱一家人 (27)";
+        }
         showDebunkOptions();
       } else if (level === 2) {
         showLevel2Options();
