@@ -72,9 +72,9 @@ function playConfettiSound() {
 // ==========================================
 function loadStaticAssets() {
   const mapping = {
-    // signal: ASSETS.ICONS.signal,
-    // wifi: ASSETS.ICONS.wifi,
-    // battery: ASSETS.ICONS.battery,
+    signal: ASSETS.ICONS.signal,
+    wifi: ASSETS.ICONS.wifi,
+    battery: ASSETS.ICONS.battery,
     back: ASSETS.ICONS.back,
     more: ASSETS.ICONS.more,
     voice_icon: ASSETS.ICONS.voice_icon,
@@ -111,13 +111,13 @@ setInterval(refreshDynamicTimes, 60000);
 // ==========================================
 // 1. 时间显示逻辑
 // ==========================================
-// function updateTime() {
-//   const now = new Date();
-//   document.getElementById("clock").innerText =
-//     `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-// }
-// setInterval(updateTime, 1000);
-// updateTime();
+function updateTime() {
+  const now = new Date();
+  document.getElementById("clock").innerText =
+    `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+}
+setInterval(updateTime, 1000);
+updateTime();
 function formatWeChatTime(timestamp) {
   const date = new Date(timestamp);
   const now = new Date();
