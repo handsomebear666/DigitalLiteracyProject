@@ -907,7 +907,7 @@ function hideUncleMessage(type) {
         return;
       }
     } else if (type === "text") {
-      if (row.innerText.includes("震惊！咱们本地捞出变异巨兽")) {
+      if (row.innerText.includes("震惊！漓江出现了变异巨兽")) {
         row.style.display = "none";
         return;
       }
@@ -915,7 +915,7 @@ function hideUncleMessage(type) {
       // 撤回三姑的钓鱼链接
       if (
         row.innerText.includes("三姑") &&
-        row.innerHTML.includes("taobao-vip-free")
+        row.innerHTML.includes("taoobaoo-vip-free")
       ) {
         row.style.display = "none";
         return;
