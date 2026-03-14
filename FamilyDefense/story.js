@@ -82,7 +82,7 @@ const GAME_STORY = {
     {
       sender: "三姑",
       // 注意这里的 <a> 标签，点击后会触发 openTaobao() 函数
-      text: "哎呀别管什么水怪了，快快快！波登登羽绒服厂家搞内部清仓，点击链接免费领一件！还剩最后几百件了，大家快抢：<br><a href='javascript:void(0)' onclick='openTaobao()' style='color: #07c160; word-break: break-all;'>www.taobao-vip-free.xyz</a>",
+      text: "哎呀别管什么水怪了，快快快！波登登羽绒服厂家搞内部清仓，点击链接免费领一件！还剩最后几百件了，大家快抢：<br><a href='javascript:void(0)' onclick='openTaobao()' style='color: #07c160; word-break: break-all;'>www.taoobaoo-vip-free.xyz</a>",
       avatar: "aunt",
       delay: 1500,
     },
