@@ -291,9 +291,6 @@ body {
   transform: scale(0.95);
 }
 
-/* =========================================
-   皮肤 A：全屏沉浸式首页 (清爽白绿风)
-   ========================================= */
 .system-overlay.fullscreen-light {
   position: absolute;
   top: 0;
@@ -304,10 +301,16 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  padding: 60px 20px 40px;
+
+  /* 【修改 1】：从上往下自然排列，取消强行两端对齐 */
+  justify-content: flex-start;
+  /* 【修改 2】：顶部留白稍微缩小一点，腾出空间 */
+  padding: 40px 20px 40px;
   z-index: 99999;
   box-sizing: border-box;
+
+  /* 【核心修复】：允许整个页面上下划动！ */
+  overflow-y: auto;
 }
 .start-header-light {
   text-align: center;
@@ -339,8 +342,10 @@ body {
   padding: 20px 20px 30px;
   box-shadow: 0 8px 24px rgba(7, 193, 96, 0.12);
   border: 1px solid rgba(7, 193, 96, 0.1);
-  flex: 1;
-  margin-bottom: 40px;
+
+  /* 【核心修复】：改为 flex: none，让卡片顺其自然地适应文字高度 */
+  flex: none;
+  margin-bottom: 30px;
   display: flex;
   flex-direction: column;
 }
@@ -376,18 +381,16 @@ body {
   font-size: 16px;
   color: #444444;
   white-space: pre-wrap;
-  flex: 1;
-  overflow-y: auto;
 
-  /* --- 核心修改部分 --- */
-  text-align: center; /* 1. 水平居中 */
-  line-height: 2.3; /* 2. 增大行间距 */
-  width: 100%; /* 3. 确保占满宽度 */
-  display: flex; /* 4. 开启 Flex 布局 */
-  flex-direction: column; /* 5. 垂直排列 */
-  justify-content: center; /* 6. 垂直居中（如果你想让文字在卡片中间，而不仅是顶部） */
-  padding: 0 10px; /* 7. 左右留白，防止文字贴边 */
-  /* ------------------- */
+  /* 【核心修复】：删除了原本这里的 flex: 1 和 overflow-y: auto */
+
+  text-align: center;
+  line-height: 2.3;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 10px;
 }
 .warning-text-light::-webkit-scrollbar {
   width: 4px;
@@ -411,6 +414,9 @@ body {
   transition: all 0.2s ease;
   flex-shrink: 0;
   margin-bottom: 25px;
+
+  /* 【核心修复】：如果手机屏幕很长（比如iPhone Max），它会自动把按钮推到最底下 */
+  margin-top: auto;
 }
 .start-btn-light:active {
   transform: scale(0.96);
