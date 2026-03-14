@@ -4,6 +4,10 @@
   padding: 0;
   font-family: -apple-system, sans-serif;
   -webkit-tap-highlight-color: transparent;
+
+  /* 【关键新增】：强制网页无视手机系统的字体大小设置（主要针对苹果 Safari 和普通浏览器） */
+  -webkit-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
 }
 body {
   background-color: #333; /* 电脑端看到的背景色，深色能凸显中间的手机屏幕 */
@@ -1042,4 +1046,14 @@ body {
   100% {
     opacity: 0.6;
   }
+}
+/* =========================================
+   【新增】：单独给知识盘点弹窗加上滑动功能
+   ========================================= */
+#settlementText,
+#failText {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 50vh; /* 限制最大高度，文字超出了就会在这个框里上下滚动 */
+  width: 100%;
 }
