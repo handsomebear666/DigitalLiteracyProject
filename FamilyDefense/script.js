@@ -1005,6 +1005,11 @@ function closeFaceTime() {
   document.getElementById("facetimeOverlay").style.display = "none";
 }
 
+function finishFaceTime() {
+  playClickSound();
+  document.getElementById("facetimeOverlay").style.display = "none";
+}
+
 function revealFaceTimeFlaw(flawId) {
   if (!canFindFTFlaws) return;
 
@@ -1040,7 +1045,7 @@ function revealFaceTimeFlaw(flawId) {
       if (hintBtn) hintBtn.style.display = "none";
 
       setTimeout(() => {
-        closeFaceTime();
+        finishFaceTime();
         updateSystemHint("⚠️ 请立刻制止老妈的操作！", false, 1000);
         setTimeout(showLevel3Options, 1500);
       }, 2500);
