@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "digitalliteracyproject",
+  "compatibility_date": "2025-09-27",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "FamilyDefense"
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
+}
