@@ -7,7 +7,7 @@
 本项目旨在用趣味、低门槛的交互方式，帮助中老年人提高数字素养，识别日常生活中的高发网络诈骗。
 
 ## 🎮 在线体验
-👉 **[点击这里立即开始防骗保卫战][(替换为你的 GitHub Pages 链接或 Netlify 链接)](http://handsomebear666.github.io/DigitalLiteracyProject/FamilyDefense/index.html)**
+👉 **[点击这里立即开始防骗保卫战](http://handsomebear666.github.io/DigitalLiteracyProject/FamilyDefense/index.html)**
 
 ## ✨ 核心玩法与关卡
 游戏高度还原了真实的微信聊天场景，并设计了三大典型高发诈骗关卡：
