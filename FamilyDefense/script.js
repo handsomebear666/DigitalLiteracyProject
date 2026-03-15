@@ -54,57 +54,14 @@ const bgmSound = new Audio();
 const clickSound = new Audio();
 const confettiSound = new Audio();
 
-bgmSound.loop = false; // 【修改】：关闭原生循环，改用手动控制
-bgmSound.volume = 0;
+bgmSound.loop = true; // ✅ 开启原生循环，由浏览器自动处理重播
+bgmSound.volume = 0.3; // ✅ 直接设定好音量，不需要渐变
 confettiSound.volume = 0.7;
 
 function playMessageSound() {
   sysMsgSound.currentTime = 0;
   sysMsgSound.play().catch((e) => console.log("等待用户交互才能播放音效"));
 }
-
-// ==========================================
-// 【新增】：BGM 渐变循环引擎
-// ==========================================
-const BGM_TARGET_VOLUME = 0.3; // 最终音量
-const FADE_TIME = 2500; // 渐变时间 (500毫秒 = 0.5秒)
-
-// 淡入函数
-function fadeInBGM() {
-  bgmSound.volume = 0;
-  bgmSound.play();
-  let volumeTick = 0;
-  const interval = setInterval(
-    () => {
-      volumeTick += 0.02; // 每次增加一点音量
-      if (volumeTick >= BGM_TARGET_VOLUME) {
-        bgmSound.volume = BGM_TARGET_VOLUME;
-        clearInterval(interval);
-      } else {
-        bgmSound.volume = volumeTick;
-      }
-    },
-    FADE_TIME / (BGM_TARGET_VOLUME / 0.02),
-  );
-}
-
-// 监听音频播放进度
-bgmSound.addEventListener("timeupdate", function () {
-  const timeLeft = bgmSound.duration - bgmSound.currentTime;
-  if (timeLeft > 0 && timeLeft <= FADE_TIME / 1000) {
-    // 根据剩余时间按比例降低音量
-    bgmSound.volume = Math.max(
-      0,
-      (timeLeft / (FADE_TIME / 1000)) * BGM_TARGET_VOLUME,
-    );
-  }
-});
-
-// 当音乐彻底结束时，重置并重新淡入播放
-bgmSound.addEventListener("ended", function () {
-  bgmSound.currentTime = 0;
-  fadeInBGM();
-});
 
 function playClickSound() {
   clickSound.currentTime = 0;
@@ -304,14 +261,11 @@ function startGame() {
   playClickSound();
   const overlay = document.getElementById("missionOverlay");
 
-  // 1. 【修改】：调用淡入函数启动 BGM，而不是直接播放
-  fadeInBGM();
+  bgmSound.play().catch((e) => console.log("BGM播放失败", e));
 
-  sysMsgSound.play().catch((e) => {});
-  sysMsgSound.pause();
-
-  // ✅ 【关键修复】：把显示头部的逻辑挪到这里！
-  // 这样在白卡片开始变透明的一瞬间，假群头就已经在后面准备好了
+  // 后面的预热逻辑保持原样
+  sysMsgSound.play().catch((e) => {}); //
+  sysMsgSound.pause(); //
   if (isWeChat) {
     document.title = "相亲相爱一家人 (27)";
   } else {
@@ -1079,7 +1033,7 @@ function showLevel3Options() {
   actionArea.innerHTML = `
     <div class="options-panel">
       <div class="question-title">老妈正在操作，迫在眉睫，你必须立刻回复：</div>
-      <button class="action-btn outline" onclick="chooseLevel3Option('A')">妈你别理他，这视频里的人是AI换脸生成的假客服！</button>
+      <button class="action-btn outline" onclick="chooseLevel3Option('A')">妈你别理她，这视频里的人是AI换脸生成的假客服！</button>
       <button class="action-btn solid" onclick="chooseLevel3Option('B')">挂断！开飞行模式！要求屏幕共享100%就是诈骗！</button>
     </div>
   `;
