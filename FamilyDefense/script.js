@@ -54,15 +54,57 @@ const bgmSound = new Audio();
 const clickSound = new Audio();
 const confettiSound = new Audio();
 
-bgmSound.loop = true;
-bgmSound.volume = 0.3;
+bgmSound.loop = false; // 【修改】：关闭原生循环，改用手动控制
+bgmSound.volume = 0;
 confettiSound.volume = 0.7;
 
 function playMessageSound() {
   sysMsgSound.currentTime = 0;
   sysMsgSound.play().catch((e) => console.log("等待用户交互才能播放音效"));
 }
-// ... 下面的 playClickSound 保持不变
+
+// ==========================================
+// 【新增】：BGM 渐变循环引擎
+// ==========================================
+const BGM_TARGET_VOLUME = 0.3; // 最终音量
+const FADE_TIME = 2500; // 渐变时间 (500毫秒 = 0.5秒)
+
+// 淡入函数
+function fadeInBGM() {
+  bgmSound.volume = 0;
+  bgmSound.play();
+  let volumeTick = 0;
+  const interval = setInterval(
+    () => {
+      volumeTick += 0.02; // 每次增加一点音量
+      if (volumeTick >= BGM_TARGET_VOLUME) {
+        bgmSound.volume = BGM_TARGET_VOLUME;
+        clearInterval(interval);
+      } else {
+        bgmSound.volume = volumeTick;
+      }
+    },
+    FADE_TIME / (BGM_TARGET_VOLUME / 0.02),
+  );
+}
+
+// 监听音频播放进度
+bgmSound.addEventListener("timeupdate", function () {
+  const timeLeft = bgmSound.duration - bgmSound.currentTime;
+  if (timeLeft > 0 && timeLeft <= FADE_TIME / 1000) {
+    // 根据剩余时间按比例降低音量
+    bgmSound.volume = Math.max(
+      0,
+      (timeLeft / (FADE_TIME / 1000)) * BGM_TARGET_VOLUME,
+    );
+  }
+});
+
+// 当音乐彻底结束时，重置并重新淡入播放
+bgmSound.addEventListener("ended", function () {
+  bgmSound.currentTime = 0;
+  fadeInBGM();
+});
 
 function playClickSound() {
   clickSound.currentTime = 0;
@@ -210,10 +252,6 @@ function addMessage(sender, text, isMe, avatarKey, extraClass = "") {
 // 3. 剧情流程控制与全局弹窗管理 (无打字机极速版)
 // ==========================================
 
-// ==========================================
-// 3. 剧情流程控制与全局弹窗管理 (无打字机极速版)
-// ==========================================
-
 // 【关键修改】：把 window.onload 换成 DOMContentLoaded
 // 只要 HTML 骨架加载完，立刻开始加载图片，不盲等音频！
 document.addEventListener("DOMContentLoaded", function () {
@@ -266,11 +304,11 @@ function startGame() {
   playClickSound();
   const overlay = document.getElementById("missionOverlay");
 
-  // 1. 瞬间解锁并播放所有音频
-  bgmSound.play().catch((e) => console.log("BGM播放失败", e));
+  // 1. 【修改】：调用淡入函数启动 BGM，而不是直接播放
+  fadeInBGM();
+
   sysMsgSound.play().catch((e) => {});
   sysMsgSound.pause();
-  sysMsgSound.currentTime = 0;
 
   // ✅ 【关键修复】：把显示头部的逻辑挪到这里！
   // 这样在白卡片开始变透明的一瞬间，假群头就已经在后面准备好了
@@ -633,71 +671,46 @@ function chooseOption(choice) {
       addSystemMessage("二大爷撤回了一条消息");
     }, 7000);
     setTimeout(() => {
-      addMessage("老爸", "👍", false, "father");
+      addMessage(
+        "老爸",
+        "AI生成的图片和真的一样，不细看都看不出来",
+        false,
+        "father",
+      );
     }, 8500);
     setTimeout(() => {
-      addMessage("大堂哥", "👍学到了学到了", false, "one_cousin");
+      addMessage(
+        "大堂哥",
+        "学到了学到了，以后遇到反常理的图片要仔细看看，免得被蒙住了！",
+        false,
+        "one_cousin",
+      );
     }, 10000);
     setTimeout(() => {
       // 弹出成功提示
       updateSystemHint("✅ 辟谣成功：有理有据，完美化解危机！", false, 1000);
     }, 12000);
-    // 【关键新增】：辟谣成功后，过 2.5 秒弹出科普总结窗口
+
+    // ✅ 【替换为】：无缝衔接第二关剧情
     setTimeout(() => {
-      showEducationPopup();
+      let maxDelay = 0;
+      if (GAME_STORY.level2_opening) {
+        GAME_STORY.level2_opening.forEach((item) => {
+          setTimeout(() => {
+            addMessage(item.sender, item.text, false, item.avatar);
+          }, item.delay);
+          if (item.delay > maxDelay) maxDelay = item.delay;
+        });
+      }
+      setTimeout(() => {
+        nextStep(2);
+      }, maxDelay + 1500);
     }, 14500);
+    // 【关键新增】：辟谣成功后，过 2.5 秒弹出科普总结窗口
+    // setTimeout(() => {
+    //   showEducationPopup();
+    // }, 14500);
   }
-}
-
-// ==========================================
-// 知识复盘科普弹窗 (独立毛玻璃+礼花版)
-// ==========================================
-function showEducationPopup() {
-  // 注意：这里调用的 ID 换成了新做的 settlementOverlay
-  const overlay = document.getElementById("settlementOverlay");
-  const textContainer = document.getElementById("settlementText");
-
-  // 直接填入知识点
-  textContainer.innerText = `1. 视觉溯源：警惕反常理的图像细节（如南方雪山、扭曲的文字和水印）。\n2. 交叉验证：遇到震惊体新闻先别急着转，用识图工具或搜索查证。\n3. 共情沟通：辟谣不嘲讽，理解长辈，才能达成真正的“数字反哺”。`;
-
-  // 显示毛玻璃弹窗
-  overlay.style.display = "flex";
-  setTimeout(() => {
-    overlay.style.opacity = "1";
-    // 弹窗出现的同时，喷射满屏礼花！
-    fireConfetti();
-  }, 100);
-
-  overlay.style.display = "flex";
-  setTimeout(() => {
-    overlay.style.opacity = "1";
-    playConfettiSound(); // 【新增】：播放礼花音效！
-    fireConfetti();
-  }, 100);
-}
-
-// 玩家点击“我学会啦”
-function finishLevelOne() {
-  playClickSound();
-  const overlay = document.getElementById("settlementOverlay");
-  overlay.style.opacity = "0";
-  setTimeout(() => {
-    maxDelay = 0;
-    overlay.style.display = "none";
-
-    if (GAME_STORY.level2_opening) {
-      GAME_STORY.level2_opening.forEach((item) => {
-        setTimeout(() => {
-          addMessage(item.sender, item.text, false, item.avatar);
-        }, item.delay);
-        if (item.delay > maxDelay) maxDelay = item.delay;
-      });
-    }
-
-    setTimeout(() => {
-      nextStep(2);
-    }, maxDelay + 1500); // 在最后一条消息发出后，等 1.5 秒再弹系统提示
-  }, 500);
 }
 
 // ==========================================
@@ -831,7 +844,7 @@ function showLevel2Options() {
     <div class="options-panel">
       <div class="question-title">你需要在群里回复三姑，你选择：</div>
       <button class="action-btn outline" onclick="chooseLevel2Option('A')">三姑你是不是傻？天上能掉馅饼吗！</button>
-      <button class="action-btn solid" onclick="chooseLevel2Option('B')">指出假域名和索要密码的猫腻，劝她别填</button>
+      <button class="action-btn solid" onclick="chooseLevel2Option('B')">指出域名和索要密码的猫腻，劝她别填</button>
     </div>
   `;
 }
@@ -885,7 +898,7 @@ function chooseLevel2Option(choice) {
     setTimeout(() => {
       addMessage(
         "我",
-        "三姑千万别填！你看这个网址后缀是.xyz，根本不是官方的。而且免费送东西还要银行卡密码，这是经典的【邮费诈骗】，填了钱就没了！",
+        "三姑千万别填！你看这个网址后缀是.xyz，根本不是官方的。而且免费送东西还要索要银行卡密码，这是经典的邮费诈骗，填了钱就没了！",
         true,
         "me",
       );
@@ -901,7 +914,7 @@ function chooseLevel2Option(choice) {
 
     // 模拟三姑撤回链接
     setTimeout(() => {
-      hideUncleMessage("url"); // 我们复用之前的隐藏函数，稍后稍微改一下它
+      hideUncleMessage("url");
       addSystemMessage("三姑撤回了一条消息");
     }, 6000);
 
@@ -910,19 +923,35 @@ function chooseLevel2Option(choice) {
     }, 8000);
 
     setTimeout(() => {
-      addMessage("四表哥", "@全村的希望 👍👍👍真棒", false, "four_cousin");
+      addMessage("四表哥", "这个倒计时也是假的？", false, "four_cousin");
     }, 10000);
     setTimeout(() => {
-      addMessage("我", "😀", true, "me");
+      addMessage(
+        "我",
+        "没错！骗子常利用“限时限量”制造紧张感，越催越要冷静，冷静下来很容易看出破绽！",
+        true,
+        "me",
+      );
     }, 12000);
     setTimeout(() => {
       updateSystemHint("✅ 劝阻成功：保住了三姑的钱袋子！", false);
-    }, 14000);
+    }, 15000);
 
-    // 弹出第二关结算
+    // ✅ 【替换为】：无缝衔接第三关剧情
     setTimeout(() => {
-      showLevel2EducationPopup();
-    }, 16500);
+      let maxDelay = 0;
+      if (GAME_STORY.level3_opening) {
+        GAME_STORY.level3_opening.forEach((item) => {
+          setTimeout(() => {
+            addMessage(item.sender, item.text, false, item.avatar);
+          }, item.delay);
+          if (item.delay > maxDelay) maxDelay = item.delay;
+        });
+      }
+      setTimeout(() => {
+        nextStep(3);
+      }, maxDelay + 1500);
+    }, 17500);
   }
 }
 
@@ -969,53 +998,6 @@ function hideUncleMessage(type) {
   }
 }
 
-// ==========================================
-// 第二关结算弹窗 (修复不显示的问题)
-// ==========================================
-function showLevel2EducationPopup() {
-  const overlay = document.getElementById("settlementOverlay");
-  const textContainer = document.getElementById("settlementText");
-
-  textContainer.innerText = `1. 查验域名：官方网站有固定域名，警惕冗长、带有 free/vip 等拼音或奇怪后缀的山寨网址。\n2. 拒绝焦虑：骗子常利用“限时限量”制造紧张感，越催越要冷静。\n3. 守住底线：任何以“交邮费”为由，跳出官方平台索要密码的行为，100%是诈骗。`;
-
-  const btn = document.querySelector("#settlementOverlay .start-btn-light");
-  btn.innerText = "我学会了";
-  btn.onclick = () => {
-    playClickSound();
-    overlay.style.opacity = "0";
-    setTimeout(() => {
-      maxDelay = 0;
-      overlay.style.display = "none";
-      // 触发第三关老妈的台词
-      if (GAME_STORY.level3_opening) {
-        GAME_STORY.level3_opening.forEach((item) => {
-          setTimeout(() => {
-            addMessage(item.sender, item.text, false, item.avatar);
-          }, item.delay);
-          if (item.delay > maxDelay) maxDelay = item.delay;
-        });
-      }
-
-      setTimeout(() => {
-        nextStep(3);
-      }, maxDelay + 1500); // 在最后一条消息发出后，等 1.5 秒再弹系统提示
-    }, 500);
-  };
-
-  // 【关键修复】：加上了这最后两行，弹窗和礼花终于能出来了！
-  overlay.style.display = "flex";
-  setTimeout(() => {
-    overlay.style.opacity = "1";
-    fireConfetti();
-  }, 100);
-
-  overlay.style.display = "flex";
-  setTimeout(() => {
-    overlay.style.opacity = "1";
-    playConfettiSound(); // 【新增】：播放礼花音效！
-    fireConfetti();
-  }, 100);
-}
 // ==========================================
 // 第三关：终极 AI 客服与屏幕共享危机
 // ==========================================
@@ -1098,7 +1080,7 @@ function showLevel3Options() {
     <div class="options-panel">
       <div class="question-title">老妈正在操作，迫在眉睫，你必须立刻回复：</div>
       <button class="action-btn outline" onclick="chooseLevel3Option('A')">妈你别理他，这视频里的人是AI换脸生成的假客服！</button>
-      <button class="action-btn solid" onclick="chooseLevel3Option('B')">挂断！开飞行模式！只要要求屏幕共享和转账就是诈骗！</button>
+      <button class="action-btn solid" onclick="chooseLevel3Option('B')">挂断！开飞行模式！要求屏幕共享100%就是诈骗！</button>
     </div>
   `;
 }
@@ -1114,7 +1096,7 @@ function chooseLevel3Option(choice) {
     setTimeout(() => {
       addMessage(
         "我",
-        "妈你别理她，这视频里的客服是 AI 换脸生成的，假的！",
+        "妈你别理她，这视频里的客服是 AI 换脸生成的，假的！这你都看不出来吗？🙄",
         true,
         "me",
         "bad-msg-3",
@@ -1123,7 +1105,7 @@ function chooseLevel3Option(choice) {
     setTimeout(() => {
       addMessage(
         "老妈",
-        "怎么可能假？人活生生在那说话呢！你别瞎说，我赶紧弄完，不然扣钱了！",
+        "嘿你这孩子，怎么可能假？人活生生在那说话呢！你别瞎说，我赶紧弄完，不然扣钱了！",
         false,
         "mother",
         "bad-msg-3",
@@ -1142,18 +1124,26 @@ function chooseLevel3Option(choice) {
       );
     }, 6500);
     setTimeout(() => {
-      showFailPopup(3, "未能抓重点及时阻断屏幕共享，导致核心隐私全部泄露。");
+      showFailPopup(3, "未能及时阻断屏幕共享，导致核心隐私全部泄露。");
     }, 8500);
   } else if (choice === "B") {
     // 好结局
     setTimeout(() => {
       addMessage(
         "我",
-        "妈！马上挂断！开飞行模式！不管她看着多真，只要她要屏幕共享和转账，100%是诈骗！",
+        "妈！马上挂断！开飞行模式！官方人员不会通过非官方平台来联系你的！",
         true,
         "me",
       );
     }, 1000);
+    setTimeout(() => {
+      addMessage(
+        "我",
+        "不管她看着多真，只要她要屏幕共享，100%是诈骗！",
+        true,
+        "me",
+      );
+    }, 3000);
     setTimeout(() => {
       addMessage(
         "老妈",
@@ -1161,13 +1151,11 @@ function chooseLevel3Option(choice) {
         false,
         "mother",
       );
-    }, 3500);
-
+    }, 5000);
     setTimeout(() => {
       hideUncleMessage("ft_url");
       addSystemMessage("老妈撤回了一条消息");
-    }, 5500);
-
+    }, 6500);
     setTimeout(() => {
       addMessage(
         "老妈",
@@ -1186,11 +1174,14 @@ function chooseLevel3Option(choice) {
       );
     }, 10500);
     setTimeout(() => {
-      addMessage("老爸", "简直防不胜防！", false, "father");
+      addMessage("二大爷", "以后遇到要求屏幕共享的，要警惕！", false, "uncle");
     }, 12500);
     setTimeout(() => {
-      addMessage("老妈", "幸好没上当😌多亏了咱娃！", false, "mother");
+      addMessage("老爸", "简直防不胜防！", false, "father");
     }, 14500);
+    setTimeout(() => {
+      addMessage("老妈", "幸好没上当😌多亏了咱娃！", false, "mother");
+    }, 16500);
     setTimeout(() => {
       addMessage(
         "老妈",
@@ -1198,15 +1189,15 @@ function chooseLevel3Option(choice) {
         false,
         "mother",
       );
-    }, 16500);
+    }, 18500);
     setTimeout(() => {
-      updateSystemHint("✅ 极限救援成功：成功守住核心隐私与资金防线！", false);
-    }, 19500);
+      updateSystemHint("✅ 极限救援成功：成功守住老妈的隐私和钱包！", false);
+    }, 21500);
 
     // 弹出终极大结算
     setTimeout(() => {
       showLevel3EducationPopup();
-    }, 21500);
+    }, 24000);
   }
 }
 
@@ -1223,7 +1214,7 @@ function showLevel3EducationPopup() {
     titleElement.innerText = "🏆 完美通关！";
   }
 
-  textContainer.innerText = `1. 放弃执念，重塑标准：在 AI 时代，不要试图用肉眼去分辨视频和声音的真假，技术上已经无法区分。\n2. 死守隐私防线：无论对方披着怎样完美的官方外衣，只要触及“屏幕共享”、“索要验证码”、“转移资金”这三条红线，即刻判定为诈骗。\n3. 信息溯源：警惕一切“官方人员”通过非官方平台发起的联系。`;
+  textContainer.innerText = `1. 细看漏洞：观察反常细节, 看图验证核实真相。\n2. 认准域名：警惕山寨网址，拒填密码，护好支付底线。\n3. 拒开共享：严防屏幕监控，切断转账，守住资金红线。`;
 
   const btn = document.querySelector("#settlementOverlay .start-btn-light");
   btn.innerText = "重新开始";

@@ -938,6 +938,9 @@ body {
   background: #f2f2f7;
   padding: 15px;
   overflow-y: auto;
+
+  display: flex;
+  flex-direction: column;
 }
 .chat-msg {
   margin-bottom: 12px;
@@ -962,15 +965,13 @@ body {
 }
 
 .screen-share-alert {
-  /* 【修改】：让它占满聊天框，并和上面的消息保持 15px 的紧凑间距 */
   width: 100%;
-  margin-top: 15px;
+
+  margin-top: auto;
 
   background: #fff;
   border-radius: 16px;
   padding: 20px;
-
-  /* 【优化】：既然不是悬浮在底部的弹窗了，阴影可以调柔和一点，像内嵌的卡片 */
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
   border: 2px solid transparent;
   cursor: pointer;
