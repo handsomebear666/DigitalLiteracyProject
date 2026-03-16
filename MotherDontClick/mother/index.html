@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>真相放大镜 - 对话篇</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="game-container">
+      <div id="phone-btn" class="phone-btn" onclick="togglePhone()">
+        <img id="icon-phone" src="assets/phone_icon.svg" />
+      </div>
+
+      <div class="character-layer">
+        <img id="character-image" src="" />
+      </div>
+
+      <div class="ui-layer">
+        <div id="options-container" class="options-container"></div>
+        <div class="dialogue-bubble" id="dialogue-bubble">
+          <div class="name-tag" id="character-name"></div>
+          <div class="dialogue-text" id="dialogue-text"></div>
+        </div>
+      </div>
+    </div>
+    <script src="story.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>

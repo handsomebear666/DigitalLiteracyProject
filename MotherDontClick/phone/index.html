@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>真相放大镜 - 手机篇</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="game-container">
+      <div id="wechat-page" class="wechat-page">
+        <div class="wechat-header">
+          <div class="wechat-header-left" onclick="alert('返回游戏对话')">
+            <img
+              src="assets/icon_back.svg"
+              class="header-icon icon-back"
+              alt="返回"
+            />
+          </div>
+          <div class="wechat-header-title" id="groupName">
+            幸福家园业主群 (492)
+          </div>
+          <div class="wechat-header-right">
+            <img
+              src="assets/icon_dots.svg"
+              class="header-icon icon-dots"
+              alt="更多"
+            />
+          </div>
+        </div>
+
+        <div class="chat-container" id="chatBox"></div>
+
+        <div class="wechat-bottom-bar">
+          <img src="assets/icon_voice.svg" class="bottom-icon" alt="语音" />
+          <div class="wechat-input-box"></div>
+          <img src="assets/icon_emoji.svg" class="bottom-icon" alt="表情" />
+          <img src="assets/icon_plus.svg" class="bottom-icon" alt="更多功能" />
+        </div>
+      </div>
+
+      <div id="article-page" class="article-page" style="display: none">
+        <div class="wechat-header article-top-bar">
+          <div class="wechat-header-left" onclick="closeArticle()">
+            <img
+              src="assets/icon_close.svg"
+              class="header-icon icon-close"
+              alt="关闭"
+            />
+          </div>
+          <div class="wechat-header-title"></div>
+          <div class="wechat-header-right">
+            <img
+              src="assets/icon_dots.svg"
+              class="header-icon icon-dots"
+              alt="更多"
+            />
+          </div>
+        </div>
+
+        <div class="article-content">
+          <h1 class="article-title">
+            【官方认证】建馆30周年，50元话费与好礼限时领！
+          </h1>
+          <div class="article-meta">
+            <span class="publish-time">今天</span>
+            <span class="author-link" onclick="triggerDebunk('typo')"
+              >市图书管活动中心</span
+            >
+          </div>
+
+          <div class="article-body">
+            <img src="assets/news_banner1.png" class="full-width-img" />
+            <p>
+              为庆祝建馆30周年，特回馈广大市民，凡点击本链接参与活动者，均可获得50元话费充值卡一张，及高级抽纸一箱。
+            </p>
+            <p>名额有限，仅限前500名，先到先得，送完即止！</p>
+            <div class="official-footer">
+              <p onclick="triggerDebunk('entity')">
+                服务提供方：XX市某某商贸个体店
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="article-bottom-bar">
+          <div class="article-account-info">
+            <img src="assets/aunt_zhang.png" class="account-logo" />
+            <span class="account-name">市图书管活动中心</span>
+          </div>
+          <div class="article-actions">
+            <div class="action-item">
+              <img src="assets/icon_like.svg" class="action-icon" />
+              <span class="action-text">26</span>
+            </div>
+            <div class="action-item">
+              <img src="assets/icon_share.svg" class="action-icon" />
+              <span class="action-text">70</span>
+            </div>
+            <div class="action-item">
+              <img src="assets/icon_wow.svg" class="action-icon" />
+              <span class="action-text">3</span>
+            </div>
+            <div class="action-item">
+              <img src="assets/icon_comment.svg" class="action-icon" />
+              <span class="action-text">10</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="story.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
